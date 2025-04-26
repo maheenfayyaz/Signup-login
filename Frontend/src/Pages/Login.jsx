@@ -1,39 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaEnvelope, FaLock, FaGoogle, FaFacebookF, FaGithub, FaLinkedinIn } from 'react-icons/fa';
 import { useFormik } from 'formik';
-import userValidationSchema from '../Validation/userValidationSchema';
+import userLoginValidationSchema from '../Validation/userLoginValidationSchema';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import '../assets/css/style.css';
+import { login } from '../store/authSlice.mjs';
+import { useDispatch } from 'react-redux';
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
 const Login = () => {
     const [loading, setLoading] = useState(false);
+    const dispatch = useDispatch();
     const [showForgotPassword, setShowForgotPassword] = useState(false);
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+    const [showResetPassword, setShowResetPassword] = useState(false);
+    const [resetPassword, setResetPassword] = useState('');
+    const [resetId, setResetId] = useState('');
+    const [resetToken, setResetToken] = useState('');
+
+    const location = useLocation();
+
+    useEffect(() => {
+        // Check URL for reset password params
+        const params = new URLSearchParams(location.search);
+        const id = params.get('id');
+        const token = params.get('token');
+        if (id && token) {
+            setResetId(id);
+            setResetToken(token);
+            setShowResetPassword(true);
+        }
+    }, [location]);
 
     const formik = useFormik({
         initialValues: {
             email: '',
             password: '',
         },
-        validationSchema: userValidationSchema,
+        validationSchema: userLoginValidationSchema,
         onSubmit: async (values) => {
             setLoading(true);
+            console.log("Form submitted with values:", values);
+        
             try {
                 console.log('Sending login request to:', `${apiUrl}/login`);
-                const response = await axios.post(`${apiUrl}/login`, values, {
-                    // method: "Post",
-                    headers: { 'Content-Type': 'application/json' },
-                    // body: JSON.stringify(formData),
+                const response = await axios.post(`${apiUrl}/login`, {
+                    email: values.email,
+                    password: values.password
+                }, {
+                    headers: { 'Content-Type': 'application/json' }
                 });
+        
                 console.log('Login response:', response.data);
                 setLoading(false);
-                // const data = await response.json()
-                if (response.data.success) {
+        
+                if (response.status >= 200 && response.status < 300) {
                     localStorage.setItem("token", response.data.token)
                     localStorage.setItem("userID", response.data._id)
+                    dispatch(login({
+                        token: response.data.token,
+                        userID: response.data._id
+                    }));
                     Swal.fire({
                         title: 'Success!',
                         text: 'You have logged in successfully!',
@@ -42,28 +72,20 @@ const Login = () => {
                     });
                 }
             } catch (error) {
+                console.error('Login error:', error?.response?.data || error.message);
                 setLoading(false);
-                if (error.response && error.response.status === 401) {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'Invalid email or password. Please try again.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                } else {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'An error occurred. Please try again later.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                }
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.response?.data?.message || 'Invalid email or password. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
             }
         },
-    });
-  
+    });        
 
-    const handleForgotPassword = async () => {
+
+const handleForgotPassword = async () => {
         if (!forgotPasswordEmail) {
             Swal.fire({
                 title: 'Error!',
@@ -76,9 +98,9 @@ const Login = () => {
 
         try {
             setLoading(true);
-            // // const response = await axios.post(`${apiUrl}/forgot-password`, {
-            //     email: forgotPasswordEmail
-            // });
+            const response = await axios.post(`${apiUrl}/forget`, {
+                email: forgotPasswordEmail
+            });
 
             setLoading(false);
             if (response.status >= 200 && response.status < 300) {
@@ -103,7 +125,7 @@ const Login = () => {
 
     return (
         <div className="auth-container">
-            <form onSubmit= {(e)=>{e.preventDefault(); formik.handleSubmit(e)}} className="auth-form">
+            <form onSubmit={formik.handleSubmit} className="auth-form">
                 <div className="auth-welcome-section">
                     <div className="welcome-content">
                         <h2>Hello, Welcome!</h2>
@@ -113,7 +135,7 @@ const Login = () => {
                 </div>
 
                 <div className="auth-form-section">
-                    {!showForgotPassword && <h1>Login</h1>}
+                    {!showForgotPassword && !showResetPassword && <h1>Login</h1>}
 
                     {showForgotPassword ? (
                         <div className="forgot-password-section">
@@ -147,6 +169,71 @@ const Login = () => {
                                 Back to Login
                             </button>
                         </div>
+                    ) : showResetPassword ? (
+                        <div className="reset-password-section">
+                            <h3>Set New Password</h3>
+                            <p>Enter your new password below</p>
+
+                            <div className="input-field">
+                                <FaLock className="input-icon" />
+                                <input
+                                    type="password"
+                                    placeholder="New Password"
+                                    value={resetPassword}
+                                    onChange={(e) => setResetPassword(e.target.value)}
+                                    disabled={loading}
+                                />
+                            </div>
+
+                            <button
+                                type="button"
+                                className="auth-button"
+                                onClick={async () => {
+                                    if (!resetPassword) {
+                                        Swal.fire({
+                                            title: 'Error!',
+                                            text: 'Please enter a new password',
+                                            icon: 'error',
+                                            confirmButtonText: 'OK'
+                                        });
+                                        return;
+                                    }
+                                    setLoading(true);
+                                    try {
+                                        const response = await axios.post(`${apiUrl}/resetpassword/${resetId}/${resetToken}`, { password: resetPassword });
+                                        setLoading(false);
+                                        if (response.status >= 200 && response.status < 300) {
+                                            Swal.fire({
+                                                title: 'Success!',
+                                                text: 'Your password has been reset successfully!',
+                                                icon: 'success',
+                                                confirmButtonText: 'OK'
+                                            });
+                                            setShowResetPassword(false);
+                                        }
+                                    } catch (error) {
+                                        setLoading(false);
+                                        Swal.fire({
+                                            title: 'Error!',
+                                            text: error.response?.data?.message || 'Failed to reset password',
+                                            icon: 'error',
+                                            confirmButtonText: 'OK'
+                                        });
+                                    }
+                                }}
+                                disabled={loading}
+                            >
+                                {loading ? 'Resetting...' : 'Reset Password'}
+                            </button>
+
+                            <button
+                                type="button"
+                                className="auth-link-button"
+                                onClick={() => setShowResetPassword(false)}
+                            >
+                                Back to Login
+                            </button>
+                        </div>
                     ) : (
                         <>
                             <div className="input-field">
@@ -155,6 +242,8 @@ const Login = () => {
                                     type="email"
                                     name="email"
                                     placeholder="Email"
+                                    
+  
                                     {...formik.getFieldProps('email')}
                                 />
                                 {formik.touched.email && formik.errors.email && (

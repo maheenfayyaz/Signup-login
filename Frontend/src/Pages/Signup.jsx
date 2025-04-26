@@ -29,7 +29,6 @@ const Signup = () => {
                     },
                     body: JSON.stringify(values),
                 });
-                // const data = await response.json();
                 setLoading(false);
                 console.log("response:", response);
                 if (response.status >= 200 && response.status < 300) {

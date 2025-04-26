@@ -452,15 +452,19 @@ form#Signup .right a:hover {
   .auth-form {
     flex-direction: column;
     min-height: auto;
+    width: 100%;
+    max-width: 400px;
   }
   
   .auth-welcome-section {
     padding: 30px 20px;
     border-radius: 15px 15px 0 0; 
+    width: 100%;
   }
   
   .auth-form-section {
     padding: 30px 20px;
+    width: 100%;
   }
 
   .input-field .input-icon {

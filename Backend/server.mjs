@@ -1,6 +1,6 @@
 import express from "express"
 import mongoose from "./db/userData.mjs"
-import userRoutes from './Routes/userRoutes.mjs'
+import userRoutes from './routes/userRoutes.mjs'
 import chalk from "chalk"
 import connectToUserDb from "./db/userData.mjs"
 import cors from 'cors'
@@ -22,7 +22,7 @@ app.use(cors({
 
 }));
 app.use(express.json())
-app.use("/api",userRoutes)
+app.use("/api/auth",userRoutes)
 
 // 192.168.0.168
 
