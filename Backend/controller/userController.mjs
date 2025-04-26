@@ -122,8 +122,8 @@ const resetPassword = async (req, res) => {
                 return res.status(401).json({ message: "Invalid token" });
             }
 
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
+            // Use synchronous hashing for consistency with signup
+            const hashedPassword = bcrypt.hashSync(password, 10);
 
             user.password = hashedPassword;
             await user.save();
