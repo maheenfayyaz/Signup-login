@@ -1,0 +1,40 @@
+import express from "express"
+import mongoose from "./db/userData.mjs"
+import userRoutes from './Routes/userRoutes.mjs'
+import chalk from "chalk"
+import connectToUserDb from "./db/userData.mjs"
+import cors from 'cors'
+
+//mongodb connect
+connectToUserDb()
+
+const app = express()
+const port = 5000
+
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+  ],
+  methods:['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
+
+}));
+app.use(express.json())
+app.use("/api",userRoutes)
+
+// 192.168.0.168
+
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
+
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+  res.status(status).json({ error: err.message || 'Internal Server Error', status });
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
