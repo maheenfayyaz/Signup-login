@@ -15,6 +15,7 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:5174',
+    'https://signup-login-sooty.vercel.app/',
   ],
   methods:['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true,
