@@ -20,7 +20,7 @@ const CreateTask = () => {
   });
 
   const token = localStorage.getItem('token');
-  const apiUrl = import.meta.env.VITE_API_TASK_BASE_URL || 'http://localhost:5000/api/tasks';
+  const apiUrl = import.meta.env.VITE_API_TASK_BASE_URL;
 
   useEffect(() => {
     fetchTasks();

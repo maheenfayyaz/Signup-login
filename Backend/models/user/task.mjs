@@ -1,10 +1,5 @@
 import mongoose from "mongoose";
 
-const taskConnection = mongoose.createConnection(process.env.TASK_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-
 const taskSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -35,6 +30,6 @@ const taskSchema = new mongoose.Schema({
   
 })
 
-const Task = taskConnection.model("Task", taskSchema);
+const Task = mongoose.model("Task", taskSchema);
 
 export default Task;

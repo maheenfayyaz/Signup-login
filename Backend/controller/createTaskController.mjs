@@ -10,6 +10,7 @@ const createTask = async (req, res) => {
         console.log("Saving task to database:", task);
         await task.save();
         console.log("Task saved successfully:", task);
+        console.log("Saved task document:", task);
         res.status(201).send({ status: 201, message: "Task created successfully", task });
     } catch (error) {
         console.error("Error in createTask:", error);
