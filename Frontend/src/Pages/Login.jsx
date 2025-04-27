@@ -24,7 +24,6 @@ const Login = () => {
     const location = useLocation();
 
     useEffect(() => {
-        // Check URL for reset password params
         const params = new URLSearchParams(location.search);
         const id = params.get('id');
         const token = params.get('token');
