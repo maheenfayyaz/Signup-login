@@ -1,0 +1,40 @@
+import mongoose from "mongoose";
+
+const taskConnection = mongoose.createConnection(process.env.TASK_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const taskSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: true
+    },
+
+    description: {
+        type: String,
+        required: true
+    },
+
+    assignedTo: {
+        type: String,
+        required: true
+    },
+    
+    status: {
+        type: String,
+        default: "To Do",
+        enum: ["To Do", "In Progress", "Completed"]
+    },
+},
+    {
+    timestamps: {
+        createdAt: "created_at",
+        updatedAt: "updated_at"  
+    }
+  
+})
+
+const Task = taskConnection.model("Task", taskSchema);
+
+export default Task;

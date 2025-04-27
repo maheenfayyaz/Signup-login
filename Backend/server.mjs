@@ -1,6 +1,7 @@
 import express from "express"
 import mongoose from "./db/userData.mjs"
 import userRoutes from './routes/userRoutes.mjs'
+import createTaskRoutes from './routes/createTaskRoutes.mjs'
 import chalk from "chalk"
 import connectToUserDb from "./db/userData.mjs"
 import cors from 'cors'
@@ -25,6 +26,7 @@ app.use(cors({
 }));
 app.use(express.json())
 app.use("/api/auth",userRoutes)
+app.use("/api/tasks", createTaskRoutes)
 
 // 192.168.0.168
 

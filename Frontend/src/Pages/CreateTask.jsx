@@ -1,19 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 const initialTasks = {
-  todo: [
-    { id: '1', title: 'Sample Task 1', description: 'Description 1', assignedTo: 'todo' },
-  ],
-  inprogress: [
-    { id: '2', title: 'Sample Task 2', description: 'Description 2', assignedTo: 'inprogress' },
-  ],
-  done: [
-    { id: '3', title: 'Sample Task 3', description: 'Description 3', assignedTo: 'done' },
-  ],
+  todo: [],
+  inprogress: [],
+  done: [],
 };
-
-const assignedToOptions = ['todo', 'inprogress', 'done'];
 
 const CreateTask = () => {
   const [tasks, setTasks] = useState(initialTasks);
@@ -22,11 +15,38 @@ const CreateTask = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    assignedTo: 'todo',
+    assignedTo: '',
   });
 
+  const token = localStorage.getItem('token');
+  const apiUrl = import.meta.env.VITE_API_TASK_BASE_URL; 
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      const response = await axios.get(`${apiUrl}/get`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const tasksData = response.data;
+      const groupedTasks = { todo: [], inprogress: [], done: [] };
+      tasksData.forEach((task) => {
+        if (task.status === 'To Do') groupedTasks.todo.push(task);
+        else if (task.status === 'In Progress') groupedTasks.inprogress.push(task);
+        else if (task.status === 'Completed') groupedTasks.done.push(task);
+      });
+      setTasks(groupedTasks);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+    }
+  };
+
   const resetForm = () => {
-    setFormData({ title: '', description: '', assignedTo: 'todo' });
+    setFormData({ title: '', description: '', assignedTo: '' });
     setEditingTask(null);
   };
 
@@ -35,56 +55,74 @@ const CreateTask = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAssignedToChange = (e) => {
-    setFormData((prev) => ({ ...prev, assignedTo: e.target.value }));
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingTask) {
-      const newTasks = { ...tasks };
-      for (const status in newTasks) {
-        newTasks[status] = newTasks[status].map((task) =>
-          task.id === editingTask.id ? { ...task, ...formData } : task
-        );
+    try {
+      if (editingTask) {
+        await axios.put(`${apiUrl}/update/${editingTask._id}`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } else {
+        await axios.post(`${apiUrl}/create`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
       }
-      setTasks(newTasks);
-    } else {
-      const newTask = {
-        id: Date.now().toString(),
-        ...formData,
-      };
-      setTasks((prev) => ({
-        ...prev,
-        [formData.assignedTo]: [newTask, ...prev[formData.assignedTo]],
-      }));
+      resetForm();
+      setShowForm(false);
+      fetchTasks();
+    } catch (error) {
+      console.error('Error saving task:', error);
     }
-    resetForm();
-    setShowForm(false);
   };
 
   const onDragEnd = (result) => {
     const { source, destination } = result;
-  
+
     if (!destination) return;
-  
+
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
     ) {
       return;
     }
-  
+
     const sourceList = Array.from(tasks[source.droppableId]);
     const [movedTask] = sourceList.splice(source.index, 1);
+    movedTask.status =
+      destination.droppableId === 'todo'
+        ? 'To Do'
+        : destination.droppableId === 'inprogress'
+        ? 'In Progress'
+        : 'Completed';
     const destinationList = Array.from(tasks[destination.droppableId]);
     destinationList.splice(destination.index, 0, movedTask);
-  
-    setTasks((prev) => ({
-      ...prev,
+
+    const newTasks = {
+      ...tasks,
       [source.droppableId]: sourceList,
       [destination.droppableId]: destinationList,
-    }));
+    };
+    setTasks(newTasks);
+
+    // Update task status in backend
+    axios
+      .put(
+        `${apiUrl}/update/${movedTask._id}`,
+        { status: movedTask.status },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .catch((error) => {
+        console.error('Error updating task status:', error);
+      });
   };
 
   const handleEdit = (task) => {
@@ -97,12 +135,17 @@ const CreateTask = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (taskId) => {
-    const newTasks = {};
-    for (const status in tasks) {
-      newTasks[status] = tasks[status].filter((task) => task.id !== taskId);
+  const handleDelete = async (taskId) => {
+    try {
+      await axios.delete(`${apiUrl}/delete/${taskId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      fetchTasks();
+    } catch (error) {
+      console.error('Error deleting task:', error);
     }
-    setTasks(newTasks);
   };
 
   return (
@@ -169,19 +212,15 @@ const CreateTask = () => {
             <label htmlFor="assignedTo" style={{ display: 'block', marginBottom: '0.5rem' }}>
               Assigned To
             </label>
-            <select
+            <input
+              type="text"
               id="assignedTo"
               name="assignedTo"
               value={formData.assignedTo}
-              onChange={handleAssignedToChange}
+              onChange={handleInputChange}
+              required
               style={{ width: '100%', padding: '0.5rem', boxSizing: 'border-box' }}
-            >
-              {assignedToOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option.charAt(0).toUpperCase() + option.slice(1)}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <button
             type="submit"
@@ -235,7 +274,7 @@ const CreateTask = () => {
                   </h2>
                   {tasks[status].length === 0 && <p>No tasks</p>}
                   {tasks[status].map((task, index) => (
-                    <Draggable draggableId={task.id} index={index} key={task.id}>
+                    <Draggable draggableId={task._id} index={index} key={task._id}>
                       {(provided) => (
                         <div
                           ref={provided.innerRef}
@@ -270,7 +309,7 @@ const CreateTask = () => {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDelete(task.id)}
+                              onClick={() => handleDelete(task._id)}
                               style={{
                                 padding: '0.25rem 0.5rem',
                                 backgroundColor: '#dc3545',
