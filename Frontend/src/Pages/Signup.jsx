@@ -37,7 +37,7 @@ const Signup = () => {
                         icon: 'success',
                         confirmButtonText: 'OK'
                     }).then(() => {
-                        navigate('/login');
+                        navigate('/create-task');
                     });
                 }
                 else {

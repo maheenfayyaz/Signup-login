@@ -35,11 +35,15 @@ const CreateTask = () => {
       });
       const tasksData = response.data;
       const groupedTasks = { todo: [], inprogress: [], done: [] };
-      tasksData.forEach((task) => {
-        if (task.status === 'To Do') groupedTasks.todo.push(task);
-        else if (task.status === 'In Progress') groupedTasks.inprogress.push(task);
-        else if (task.status === 'Completed') groupedTasks.done.push(task);
-      });
+      if (Array.isArray(tasksData)) {
+        tasksData.forEach((task) => {
+          if (task.status === 'To Do') groupedTasks.todo.push(task);
+          else if (task.status === 'In Progress') groupedTasks.inprogress.push(task);
+          else if (task.status === 'Completed') groupedTasks.done.push(task);
+        });
+      } else {
+        console.error('Expected an array but got:', tasksData);
+      }
       setTasks(groupedTasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -113,7 +117,12 @@ const CreateTask = () => {
     axios
       .put(
         `${apiUrl}/update/${movedTask._id}`,
-        { status: movedTask.status },
+        {
+          title: movedTask.title,
+          description: movedTask.description,
+          assignedTo: movedTask.assignedTo,
+          status: movedTask.status,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
