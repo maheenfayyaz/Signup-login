@@ -19,7 +19,7 @@ const CreateTask = () => {
   });
 
   const token = localStorage.getItem('token');
-  const apiUrl = import.meta.env.VITE_API_TASK_BASE_URL; 
+  const apiUrl = import.meta.env.VITE_API_TASK_BASE_URL || 'http://localhost:5000/api/tasks';
 
   useEffect(() => {
     fetchTasks();
@@ -109,7 +109,6 @@ const CreateTask = () => {
     };
     setTasks(newTasks);
 
-    // Update task status in backend
     axios
       .put(
         `${apiUrl}/update/${movedTask._id}`,
