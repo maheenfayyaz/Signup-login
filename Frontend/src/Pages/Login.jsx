@@ -3,7 +3,7 @@ import { FaEnvelope, FaLock, FaGoogle, FaFacebookF, FaGithub, FaLinkedinIn } fro
 import { useFormik } from 'formik';
 import userLoginValidationSchema from '../Validation/userLoginValidationSchema';
 import axios from 'axios';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import '../assets/css/style.css';
 import { login } from '../store/authSlice.mjs';
@@ -12,6 +12,7 @@ import { useDispatch } from 'react-redux';
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
 const Login = () => {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
     const [showForgotPassword, setShowForgotPassword] = useState(false);
