@@ -23,11 +23,9 @@ const Signup = () => {
             console.log('Form submitted with values:', values);
             try {
                 const response = await axios.post(`${apiUrl}/signup`, values, { 
-                    method: 'POST',
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify(values),
                 });
                 setLoading(false);
                 console.log("response:", response);

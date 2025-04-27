@@ -8,6 +8,7 @@ import '../assets/css/style.css';
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
 const ResetPassword = () => {
+  console.log("apiUrl:", apiUrl);
   const { id, token } = useParams();
   const navigate = useNavigate();
   const [newPassword, setNewPassword] = useState('');
