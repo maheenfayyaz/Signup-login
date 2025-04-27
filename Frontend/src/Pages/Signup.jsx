@@ -3,13 +3,14 @@ import { FaUser, FaEnvelope, FaLock, FaGoogle, FaFacebookF, FaGithub, FaLinkedin
 import { useFormik } from 'formik';
 import userValidationSchema from '../Validation/userValidationSchema'
 import axios from 'axios'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../assets/css/style.css';
 import Swal from 'sweetalert2';
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
 const Signup = () => {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const formik = useFormik({
         initialValues: {
@@ -141,5 +142,3 @@ const Signup = () => {
 };
 
 export default Signup;
-
-
