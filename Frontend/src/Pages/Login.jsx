@@ -69,6 +69,8 @@ const Login = () => {
                         text: 'You have logged in successfully!',
                         icon: 'success',
                         confirmButtonText: 'OK'
+                    }).then(() => {
+                        navigate('/create-task');
                     });
                 }
             } catch (error) {

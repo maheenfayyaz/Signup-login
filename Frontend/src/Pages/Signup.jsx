@@ -37,6 +37,8 @@ const Signup = () => {
                         text: 'You have signed up successfully!',
                         icon: 'success',
                         confirmButtonText: 'OK'
+                    }).then(() => {
+                        navigate('/login');
                     });
                 }
                 else {
