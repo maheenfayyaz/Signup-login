@@ -16,6 +16,7 @@ const CreateTask = () => {
     title: '',
     description: '',
     assignedTo: '',
+    status: 'To Do',
   });
 
   const token = localStorage.getItem('token');
@@ -46,7 +47,7 @@ const CreateTask = () => {
   };
 
   const resetForm = () => {
-    setFormData({ title: '', description: '', assignedTo: '' });
+    setFormData({ title: '', description: '', assignedTo: '', status: 'To Do' });
     setEditingTask(null);
   };
 
@@ -130,6 +131,7 @@ const CreateTask = () => {
       title: task.title,
       description: task.description,
       assignedTo: task.assignedTo,
+      status: task.status || 'To Do',
     });
     setShowForm(true);
   };
@@ -220,6 +222,23 @@ const CreateTask = () => {
               required
               style={{ width: '100%', padding: '0.5rem', boxSizing: 'border-box' }}
             />
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <label htmlFor="status" style={{ display: 'block', marginBottom: '0.5rem' }}>
+              Status
+            </label>
+            <select
+              id="status"
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              required
+              style={{ width: '100%', padding: '0.5rem', boxSizing: 'border-box' }}
+            >
+              <option value="To Do">To Do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
           </div>
           <button
             type="submit"
